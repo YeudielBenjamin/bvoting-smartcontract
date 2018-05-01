@@ -9,9 +9,10 @@ contract BVoting is Mortal {
     mapping(address => User) public users;
     // List of elections
     mapping(address => Election) public elections; 
-    
+    // List of admins
+    mapping(address => bool) admins;
     // New election created
-    event electionCreated (address[] candidates, address electionContract);
+    event electionCreated (address[] candidates, address electionContract, string title);
     // New user unlocked
     event userUnlocked(address user, address creator);
     // New admin created
@@ -20,7 +21,7 @@ contract BVoting is Mortal {
     event voted(address from, address electionTo, address votedFor);
     
     // First is blocked to default an user as blocked.
-    enum Permission { BLOCKED, ADMIN, USER }
+    enum Permission { BLOCKED, USER }
 
     // Basic user struct.
     struct User {
@@ -39,7 +40,7 @@ contract BVoting is Mortal {
     
     // Ensures that only admins can run protected functions.
     modifier secured(){
-        require(users[msg.sender].permission == Permission.ADMIN);
+        require(admins[msg.sender]);
         _;
     }
     
@@ -51,19 +52,19 @@ contract BVoting is Mortal {
     }
     
     constructor() public{
-        users[msg.sender].permission = Permission.ADMIN;
+        admins[msg.sender] = true;
     }
     
     function unlockUser(address id, string name, string surname, string electorCode) public secured{
         //users[id] = User(Permission.USER, now + 10 years, name, surname, electorCode);
         require(address(this).balance > 11 finney, "Smart contract out of ether");
-        users[id] = User(Permission.USER, now + 10 minutes, name, surname, electorCode);
+        users[id] = User(Permission.USER, now + 10 years, name, surname, electorCode);
         id.transfer(10 finney);
         emit userUnlocked(id, msg.sender);
     }
     
     function makeAdmin(address id) public secured{
-        users[id].permission = Permission.ADMIN;
+        admins[id] = true;
         emit adminCreated(id, msg.sender);
     }
 
@@ -77,7 +78,7 @@ contract BVoting is Mortal {
         require (endDate > now, "'endDate' parameter must be a future date.");
         address electionAddress = address (new Ballot(candidates));
         elections[electionAddress] = Election(0x0, endDate, title); 
-        emit electionCreated(candidates, electionAddress);
+        emit electionCreated(candidates, electionAddress, title);
         return electionAddress;
     }
     
