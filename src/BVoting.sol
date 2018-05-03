@@ -10,7 +10,7 @@ contract BVoting is Mortal {
     // List of elections
     mapping(address => Election) public elections; 
     // List of admins
-    mapping(address => bool) admins;
+    mapping(address => bool) public admins;
     // New election created
     event electionCreated (address[] candidates, address electionContract, string title);
     // New user unlocked
@@ -92,3 +92,7 @@ contract BVoting is Mortal {
     
     function () public payable { }
 }
+
+
+//gas limit -> 100,000
+//gwei -> 10
